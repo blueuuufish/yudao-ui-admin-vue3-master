@@ -180,6 +180,19 @@ const dropItem = (info: { draggedEl: HTMLElement, dateStr: string }) => {
   matchList.value.push(obj);
 };
 
+const dropInnerItem = (info: { draggedEl: HTMLElement, dateStr: string }) => {
+  const obj: MatchItem = {
+    title: info.event.title,
+    id: info.event.id,
+    start: info.event.startStr,
+    allDay: false, // 设置为false, 才能直接拖动到slot中
+    color: info.event.backgroundColor,
+    editable: true
+  };
+  matchList.value.push(obj);
+  console.log(matchList)
+};
+
 const calendarOptions: Ref<any> = ref({
   plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
   // initialView: "dayGridMonth", // 周视图
@@ -208,6 +221,7 @@ const calendarOptions: Ref<any> = ref({
     right: "multiMonthYear,dayGridMonth,timeGridWeek,timeGridDay"
   }, // 日历上面的按钮和title
   events: matchList.value,
+  eventDrop: dropInnerItem, // 内部拖曳触发
   dateClick: (info: any) => {
     console.log(info);
   },
