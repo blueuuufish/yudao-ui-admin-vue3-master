@@ -323,6 +323,7 @@ onMounted(() => {
       itemSelector: ".eventListItems-card"
     });
   }
+  this.$refs.fullcalendarref.classList.remove('fc-day-today');
 })
 </script>
 
@@ -359,10 +360,17 @@ onMounted(() => {
 }
 
 .fc-timegrid-axis-frame {
-  display: none;
+  visibility: hidden;
 }
 .fc-toolbar-chunk {
-  display: none;
+  visibility: hidden;
 }
+
+/* 取消 FullCalendar 周视图中当天的高亮 */
+.fc-day-today {
+  background-color: inherit !important;
+}
+
+
 
 </style>
