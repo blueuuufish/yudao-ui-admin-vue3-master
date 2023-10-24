@@ -61,7 +61,7 @@
     <div class="event-list-container">
       <!-- 可以拖动的区域 -->
       <div class="draggable-event-list" id="eventListItems" ref="eventListItems">
-        <el-card v-for="(item, index) in eventList" class="eventListItems-card eventListItems" :class="item.colorclass"
+        <el-card v-for="(item, index) in eventList" class="eventListItems-card eventListItems"
                  :draggable="true" :key="index" :id="item.eventId" :style="{ backgroundColor: item.color }">
           <span :id="item.color">{{ item.eventName }}</span>
         </el-card>
@@ -87,6 +87,8 @@ import locale from "@fullcalendar/core/locales/zh-cn"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction"
+// 测试新插件，自定义view
+import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 
 defineOptions({ name: 'SMECourseSchedule' })
 
@@ -110,7 +112,6 @@ interface EventItem {
   eventId: string;
   eventName: string;
   color: string;
-  colorclass: string;
 }
 
 interface MatchItem {
@@ -128,22 +129,19 @@ const eventListItems = ref(null);
 
 const eventList: Ref<EventItem[]> = ref([
   {
-    eventId: "1",
+    eventId: "99",
     eventName: "马克思主义",
     color: "#FECACA",
-    colorclass: "bg-red-500"
   },
   {
     eventId: "2",
     eventName: "智能技术",
     color: "#6EE7B7",
-    colorclass: "bg-green-500"
   },
   {
     eventId: "3",
     eventName: "政治经济学",
     color: "#93C5FD",
-    colorclass: "bg-blue-500"
   }
 ]);
 
@@ -167,7 +165,7 @@ const matchList: Ref<MatchItem[]> = ref([
 ]);
 
 // 拖曳事件方法
-const dropItem = (info: { draggedEl: HTMLElement, dateStr: string }) => {
+const dropItem = (info: any) => {
   const obj: MatchItem = {
     title: info.draggedEl.innerText,
     id: info.draggedEl.id,
@@ -176,26 +174,27 @@ const dropItem = (info: { draggedEl: HTMLElement, dateStr: string }) => {
     color: info.draggedEl.style.backgroundColor,
     editable: true
   };
+  // 如果存在于当前matchList中，那么无法拖动
+  let matchedEvent = matchList.value.find(e => e.id === obj.id);
+  if (!matchedEvent) {
+    matchList.value.push(obj);
+  }
 
-  matchList.value.push(obj);
 };
 
-const dropInnerItem = (info: { draggedEl: HTMLElement, dateStr: string }) => {
-  const obj: MatchItem = {
-    title: info.event.title,
-    id: info.event.id,
-    start: info.event.startStr,
-    allDay: false, // 设置为false, 才能直接拖动到slot中
-    color: info.event.backgroundColor,
-    editable: true
-  };
-  matchList.value.push(obj);
-  console.log(matchList)
-};
+/*
+* 这段代码的逆天的原因估计是时间槽是从8点到20点, 不想改了-zzh
+* */
+const slotLabelContent = (arg: any) => {
+    return "第" + ((arg.time.milliseconds / 100000 - 288) / 36 + 1)  +"节课";
+}
 
 const calendarOptions: Ref<any> = ref({
   plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
-  // initialView: "dayGridMonth", // 周视图
+  // 周视图
+  initialView: 'timeGridWeek',
+  // 初始视图显示左边时间栏
+  weekNumbers: true,
   height: 'auto', // auto: 自适应表格视图
   allDaySlot: false,  // 在周视图中,不显示全天选项
   /*
@@ -204,6 +203,8 @@ const calendarOptions: Ref<any> = ref({
   slotDuration: '01:00:00',   // 设置时间格为1小时
   slotMinTime: '08:00:00',   // 从早上8点开始
   slotMaxTime: '20:00:00',   // 到下午4点结束
+  // 设置左侧时间栏的显示样式
+  slotLabelContent: slotLabelContent,
   locale: locale,
   selectable: true,
   editable: true,
@@ -215,20 +216,44 @@ const calendarOptions: Ref<any> = ref({
   handleWindowResize: true,
   windowResizeDelay: 100,
   aspectRatio: 2,
-  headerToolbar: {
-    left: "prevYear,prev,next,nextYear today",
-    center: "title",
-    right: "multiMonthYear,dayGridMonth,timeGridWeek,timeGridDay"
-  }, // 日历上面的按钮和title
+  // 日历上面的按钮和title
+  // headerToolbar: {
+  //   left: "prevYear,prev,next,nextYear today",
+  //   center: "title",
+  //   // right: "multiMonthYear,dayGridMonth,timeGridWeek,timeGridDay"
+  //   right: "timeGridWeek"
+  // },
+  // calendarOptions设置不显示日期，只显示周数
+  dayHeaderFormat: {
+    weekday: 'long',
+  },
+
   events: matchList.value,
-  eventDrop: dropInnerItem, // 内部拖曳触发
   dateClick: (info: any) => {
     console.log(info);
   },
   eventClick: (info: any) => {
     console.log(info);
   },
+  // 测试拖动开始时候的时间
+  // eventDragStart: (info: any) => {
+  // },
 
+  // 当事件拖拽完全结束时触发（无论是否更改了位置）
+  // eventDragStop: (info) => {
+  // },
+
+  // 当事件拖拽结束并放置在新的位置时触发
+  eventDrop: (info: any) => {
+    const event = info.event;
+
+    let matchedEvent = matchList.value.find(e => e.id === event.id);
+    if (matchedEvent) {
+      matchedEvent.start = event.startStr;
+      matchedEvent.end = event.endStr;
+    }
+    console.log(matchList)
+  },
 });
 
 /** 查询列表 */
@@ -295,7 +320,7 @@ onMounted(() => {
   /* 拖曳所需 */
   if (eventListItems.value) {
     new Draggable(eventListItems.value, {
-      itemSelector: ".eventListItems"
+      itemSelector: ".eventListItems-card"
     });
   }
 })
@@ -331,6 +356,13 @@ onMounted(() => {
 /* 设置周视图的每一行的高度 */
 .fc .fc-timegrid-slot {
   height: 50px;
+}
+
+.fc-timegrid-axis-frame {
+  display: none;
+}
+.fc-toolbar-chunk {
+  display: none;
 }
 
 </style>
