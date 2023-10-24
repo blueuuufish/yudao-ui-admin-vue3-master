@@ -254,6 +254,24 @@ const calendarOptions: Ref<any> = ref({
     }
     console.log(matchList)
   },
+  // TODO: 自定义数据展示
+  eventContent: (args) => {
+    const { event } = args;
+
+    // 你可以根据 event 的属性来自定义显示的内容
+    const startTime = event.start.toLocaleTimeString(); // 获取事件的开始时间
+    const title = event.title; // 获取事件的标题
+
+    // 返回自定义的 HTML 内容
+    return {
+      html: `
+        <div class="custom-event-content">
+          <div class="custom-event-time">hello</div>
+          <div class="custom-event-title">${title}</div>
+        </div>
+      `
+    };
+  }
 });
 
 /** 查询列表 */
