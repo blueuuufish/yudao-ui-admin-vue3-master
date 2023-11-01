@@ -75,7 +75,7 @@ export function createVitePlugins() {
     }),
     EslintPlugin({
       cache: false,
-      include: ['src/**/*.ts', 'src/**/*.tsx'] // 检查的文件
+      include: ['src/**/*.tsx'] // 检查的文件
     }),
     VueI18nPlugin({
       runtimeOnly: true,
