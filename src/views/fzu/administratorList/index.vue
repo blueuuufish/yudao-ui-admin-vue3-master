@@ -122,6 +122,15 @@
         >
           <Icon icon="ep:download" class="mr-5px" /> 导出
         </el-button>
+        <el-button
+            type="success"
+            plain
+            @click="handleUpload"
+            :loading="exportLoading"
+        >
+<!--          v-hasPermi="['fzu:course:export']"-->
+          <Icon icon="ep:upload" class="mr-5px" /> 导入
+        </el-button>
       </el-form-item>
     </el-form>
   </ContentWrap>
@@ -173,11 +182,14 @@
 
   <!-- 表单弹窗：添加/修改 -->
   <CourseForm ref="formRef" @success="getList" />
+  <!-- 导入弹窗: 导入课程excel -->
+  <ExcelUploadForm ref="importFormRef" @success="getList" />
 </template>
 
 <script setup lang="ts">
 import download from '@/utils/download'
 import * as CourseApi from '@/api/fzu/course'
+import ExcelUploadForm from "./ExcelUploadForm.vue";
 
 
 defineOptions({ name: 'AdministratorList' })
@@ -261,6 +273,21 @@ const handleExport = async () => {
   } catch {
   } finally {
     exportLoading.value = false
+  }
+}
+
+/* 导入课程弹窗的值 */
+const importFormRef = ref()
+
+/* 导入课程表 */
+const handleUpload = async () => {
+  importFormRef.value.open()
+
+  try {
+
+  } catch {
+  } finally {
+
   }
 }
 
